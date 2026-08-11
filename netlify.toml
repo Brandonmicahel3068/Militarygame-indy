@@ -1,0 +1,8 @@
+# Tells Netlify how to build the game.
+# Without this it would just serve the raw source files, and the
+# browser has no idea what `import * as THREE from "three"` means.
+# Vite has to bundle it first.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
