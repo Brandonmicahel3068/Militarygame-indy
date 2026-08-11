@@ -2,13 +2,20 @@
 
 A 3D military game, built in the browser by Indy.
 
+## Play it
+
+**https://militarygame-indy.netlify.app**
+
 ## Current status
 
-**Phase 0 — engine smoke test.** There's no game yet. Right now this repo proves
-one thing: code pushed here builds and shows up on a real URL. That's on purpose.
+**Phase 0 — engine smoke test. ✅ Live.** There's no game yet. Right now this repo
+proves one thing: code pushed here builds and shows up on a real URL. That's on purpose.
 
 > Deploy on day one, when there is nothing to break. Then you never have to debug
 > "why won't it deploy" and "why won't it play" at the same time.
+
+Netlify watches the `claude/3d-military-game-h573q3` branch. Every push builds and
+publishes automatically — nobody uploads anything by hand.
 
 ## Running it
 
@@ -29,6 +36,9 @@ npm run build   # production build into dist/
 ## Roadmap
 
 - [x] Phase 0 — Engine boots, ground exists, it deploys
+- [x] Phase 0.5 — Live at a public URL, auto-deploying on every push
+- [x] Phase 1a — A soldier: jointed body, camo, idle animation, orbit camera
+- [ ] Phase 1b — Make him move: WASD + a walk cycle
 - [ ] Phase 1 — **Vertical slice**: move a soldier around, shoot one thing
 - [ ] Phase 2 — Enemies that fight back
 - [ ] Phase 3 — A real map with cover
