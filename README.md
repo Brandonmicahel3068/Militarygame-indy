@@ -37,6 +37,8 @@ npm run build   # production build into dist/
 
 - [x] Phase 0 — Engine boots, ground exists, it deploys
 - [x] Phase 0.5 — Live at a public URL, auto-deploying on every push
+- [x] Phase 1a — A soldier: jointed body, camo, idle animation, orbit camera
+- [ ] Phase 1b — Make him move: WASD + a walk cycle
 - [ ] Phase 1 — **Vertical slice**: move a soldier around, shoot one thing
 - [ ] Phase 2 — Enemies that fight back
 - [ ] Phase 3 — A real map with cover

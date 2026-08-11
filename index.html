@@ -27,13 +27,20 @@
         pointer-events: none;
       }
       #hud .label { opacity: 0.55; }
+      #hud .hint {
+        margin-top: 10px;
+        opacity: 0.45;
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
     </style>
   </head>
   <body>
     <div id="hud">
-      <div>&gt; SYSTEMS ONLINE</div>
-      <div><span class="label">RENDERER:</span> THREE.JS</div>
-      <div><span class="label">STATUS:</span> AWAITING ORDERS FROM COMMANDER INDY</div>
+      <div>&gt; OPERATOR ONLINE</div>
+      <div><span class="label">UNIT:</span> RIFLEMAN — 01</div>
+      <div><span class="label">STATE:</span> IDLE</div>
+      <div class="hint">DRAG TO ORBIT &nbsp;/&nbsp; SCROLL TO ZOOM</div>
     </div>
     <script type="module" src="/src/main.js"></script>
   </body>

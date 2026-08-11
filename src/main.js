@@ -1,11 +1,9 @@
 // ============================================================
-//  OPERATION: TBD  —  engine smoke test
+//  OPERATION: TBD
 // ------------------------------------------------------------
-//  This file exists to prove ONE thing: that we can push code
-//  and see it live on a real URL. There is no game here yet.
-//  Once Indy gives the design brief, this gets replaced.
+//  Phase 1a — the soldier. Drag to orbit, scroll to zoom.
 //
-//  Every 3D scene ever made needs these four things:
+//  Every 3D scene needs the same four things:
 //    1. a SCENE   — the world, a box that holds all the objects
 //    2. a CAMERA  — the eye, where you look from
 //    3. LIGHTS    — no light, no picture. Same as real life.
@@ -13,6 +11,8 @@
 // ============================================================
 
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { createSoldier, animateIdle } from "./soldier.js";
 
 // --- 1. THE SCENE -------------------------------------------
 const scene = new THREE.Scene();
@@ -20,31 +20,60 @@ scene.background = new THREE.Color(0x1a2416); // dark olive sky
 // Fog makes distant things fade out. It hides the edge of the
 // world AND it's a performance trick — we can stop drawing
 // things past the fog because nobody can see them anyway.
-scene.fog = new THREE.Fog(0x1a2416, 20, 90);
+scene.fog = new THREE.Fog(0x1a2416, 14, 60);
 
 // --- 2. THE CAMERA ------------------------------------------
-// 60 = field of view in degrees (how wide your vision is).
-// Bigger number = more peripheral vision but more fish-eye.
+// 50 = field of view in degrees (how wide your vision is).
+// Portrait/character shots use a NARROWER fov than gameplay,
+// because wide angles distort faces. Photographers know this too.
 const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight, // aspect ratio
-  0.1, // near clip: closer than this = invisible
-  200 // far clip: further than this = invisible
+  45,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  200
 );
-camera.position.set(0, 4, 12);
-camera.lookAt(0, 1, 0);
+// A 3/4 view (turned partly to the side) shows depth far better than
+// a flat straight-on shot — you can read his chest AND his profile at
+// once. It's why almost every character render you've ever seen is
+// posed at roughly this angle.
+camera.position.set(1.5, 1.35, 2.55);
 
 // --- 3. THE LIGHTS ------------------------------------------
-// Ambient = flat light from everywhere. Fills in the shadows so
-// they aren't pure black. On its own it looks flat and boring.
-scene.add(new THREE.AmbientLight(0x6688aa, 0.6));
+// This is a classic 3-POINT LIGHTING setup, the same one used in
+// film and photography for over a century:
+//
+//   KEY   — the main light. Bright, off to one side. Does the work.
+//   FILL  — soft light from the opposite side. Stops the shadows
+//           from going pure black so you can still read detail.
+//   RIM   — behind the subject, pointing back at the camera. Puts
+//           a bright edge on his outline and separates him from
+//           the background. This is the one beginners forget, and
+//           it's the one that makes a model look expensive.
+scene.add(new THREE.HemisphereLight(0x9fc4ff, 0x4a5236, 1.1)); // sky + bounce
 
-// Directional = the sun. Parallel rays from one direction.
-// This is what actually creates shadows and makes things look 3D.
-const sun = new THREE.DirectionalLight(0xfff4d6, 2.0);
-sun.position.set(10, 20, 8);
-sun.castShadow = true;
-scene.add(sun);
+const key = new THREE.DirectionalLight(0xfff2d5, 2.6);
+key.position.set(4, 7, 5);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+// Tighten the shadow camera around the subject. A shadow map is a
+// fixed number of pixels — the smaller the area it covers, the
+// sharper the shadow. Spread it over the whole map and you get mush.
+key.shadow.camera.near = 1;
+key.shadow.camera.far = 25;
+key.shadow.camera.left = -5;
+key.shadow.camera.right = 5;
+key.shadow.camera.top = 6;
+key.shadow.camera.bottom = -2;
+key.shadow.bias = -0.0009; // stops shadow "acne" — dark speckles on lit surfaces
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0xa8c8ff, 0.55);
+fill.position.set(-5, 3, 2);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xffe6b0, 1.5);
+rim.position.set(-2, 4, -6);
+scene.add(rim);
 
 // --- 4. THE RENDERER ----------------------------------------
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -54,43 +83,56 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// ACESFilmic is the tone mapping used in actual movies. It stops
+// bright areas from blowing out to flat white and generally makes
+// everything look less like a 1998 screensaver.
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
 document.body.appendChild(renderer.domElement);
 
+// --- ORBIT CONTROLS -----------------------------------------
+// Drag to spin the camera around him, scroll to zoom.
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.0, 0); // look at his chest, not his feet
+controls.enableDamping = true; // camera glides to a stop instead of snapping
+controls.dampingFactor = 0.06;
+controls.minDistance = 1.5;
+controls.maxDistance = 12;
+controls.maxPolarAngle = Math.PI * 0.49; // stop the camera going underground
+
 // ============================================================
-//  THE WORLD (placeholder)
+//  THE WORLD
 // ============================================================
 
-// Ground. A flat plane, rotated to lie down flat.
-// Planes are born standing up like a wall, so we rotate it
-// -90 degrees around X to lay it on its back.
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(200, 200),
   new THREE.MeshStandardMaterial({ color: 0x3f5233, roughness: 1 })
 );
-ground.rotation.x = -Math.PI / 2; // Math.PI = 180 degrees, in radians
+ground.rotation.x = -Math.PI / 2; // planes are born standing up; lay it flat
 ground.receiveShadow = true;
 scene.add(ground);
 
-// A grid on top so you can actually perceive movement and scale.
 const grid = new THREE.GridHelper(200, 100, 0x5a7a48, 0x2e3d26);
 grid.position.y = 0.01; // lift it a hair so it doesn't z-fight the ground
 scene.add(grid);
 
-// A crate. Our stand-in for "a thing that exists in the world."
-const crate = new THREE.Mesh(
-  new THREE.BoxGeometry(2, 2, 2),
-  new THREE.MeshStandardMaterial({ color: 0x6b7f4a, roughness: 0.8 })
-);
-crate.position.y = 1; // box is 2 tall, origin is its center, so y=1 sits it on the floor
-crate.castShadow = true;
-scene.add(crate);
+// ============================================================
+//  THE SOLDIER
+// ============================================================
+const soldier = createSoldier();
+scene.add(soldier.root);
+
+// Dev handle. Lets us poke at the model from the browser console
+// (or from an automated test) to measure where parts ACTUALLY ended
+// up, instead of trusting arithmetic done on paper. Costs nothing
+// and it has already caught one bug.
+window.__soldier = soldier;
 
 // ============================================================
 //  THE GAME LOOP
 // ------------------------------------------------------------
-//  This runs ~60 times per second, forever. Every game ever
-//  made is this loop: update the world a tiny bit, draw it,
-//  repeat. That's it. That's the whole trick.
+//  Runs ~60 times per second, forever. Every game ever made is
+//  this loop: update the world a tiny bit, draw it, repeat.
 // ============================================================
 
 const clock = new THREE.Clock();
@@ -98,15 +140,12 @@ const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate); // "call me again next frame"
 
-  // delta = seconds since the last frame (usually ~0.016).
-  // ALWAYS multiply movement by delta. If you don't, your game
-  // literally runs faster on a better computer. Real bug, ships
-  // in real games, very annoying.
-  const delta = clock.getDelta();
+  // elapsedTime = seconds since the page loaded. We feed it to the
+  // idle animation so the wobbles are tied to REAL time, not to
+  // frame count — otherwise he'd breathe faster on a better PC.
+  animateIdle(soldier.joints, clock.elapsedTime);
 
-  crate.rotation.y += delta * 0.6; // 0.6 radians per SECOND, not per frame
-  crate.position.y = 1 + Math.sin(clock.elapsedTime * 1.5) * 0.15; // gentle hover
-
+  controls.update(); // required every frame when damping is on
   renderer.render(scene, camera);
 }
 animate();
