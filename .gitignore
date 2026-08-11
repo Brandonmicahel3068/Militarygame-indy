@@ -1,0 +1,12 @@
+# Dependencies — these get re-installed from package.json, never commit them
+node_modules/
+
+# Build output — generated, not source
+dist/
+
+# Local env / editor noise
+.env
+.env.local
+.DS_Store
+.vercel
+.netlify

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OPERATION: TBD</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #0b0f0a; overflow: hidden; font-family: "Courier New", monospace; }
+      canvas { display: block; }
+
+      #hud {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        color: #7dff9b;
+        text-shadow: 0 0 8px rgba(125, 255, 155, 0.5);
+        font-size: 14px;
+        line-height: 1.6;
+        pointer-events: none;
+      }
+      #hud .label { opacity: 0.55; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">
+      <div>&gt; SYSTEMS ONLINE</div>
+      <div><span class="label">RENDERER:</span> THREE.JS</div>
+      <div><span class="label">STATUS:</span> AWAITING ORDERS FROM COMMANDER INDY</div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
